@@ -1,1 +1,775 @@
 A webpage that will generate Raven matrices. This project was made with Javascript and the HTML5 Canvas.
+
+<!DOCTYPE html>
+<head>
+        <style>
+            .wrapper {
+                position: relative;
+                top: 50%;
+                left: 30%;
+
+            }
+            .matrix{
+                margin: 2px;
+            }
+            .matrix_answer{
+                border: 2px solid #000000;
+            }
+            .answer{
+                position: relative;
+                top: 0;
+                left: 16.67%;
+                padding: 10px;
+                margin: 1px;
+                border: 2px solid #000000;
+            }
+
+            .answer:hover{
+                border: 2px solid #0000BB;
+            }
+
+            /*#r_a1:checked #a1, #r_a2:checked #a2, #r_a3:checked #a3, #r_a4:checked #a4, #r_a5:checked #a5, #r_a6:checked #a6, #r_a7:checked #a7, #r_a8:checked #a8{
+                background: #000000;
+            }*/
+
+            .radio_buttons:checked{
+                background: black;
+            }
+
+            .radio_buttons{
+                display: hidden;
+            }
+        </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <canvas class="matrix" id="c11" width=250 height=250></canvas>
+        <canvas class="matrix" id="c12" width=250 height=250></canvas>
+        <canvas class="matrix" id="c13" width=250 height=250></canvas>
+    </div>
+    <div class="wrapper">
+        <canvas class="matrix" id="c21" width=250 height=250></canvas>
+        <canvas class="matrix" id="c22" width=250 height=250></canvas>
+        <canvas class="matrix" id="c23" width=250 height=250></canvas>
+    </div>
+    <div class="wrapper">
+        <canvas class="matrix" id="c31" width=250 height=250></canvas>
+        <canvas class="matrix" id="c32" width=250 height=250></canvas>
+        <canvas class="matrix_answer" id="c33" width=250 height=250></canvas>
+    </div>
+    <div>
+        <canvas class="answer" id="a1" onclick="selectAnswer(this)" width=150 height=150></canvas>
+        <canvas class="answer" id="a2" onclick="selectAnswer(this)" width=150 height=150></canvas>
+        <canvas class="answer" id="a3" onclick="selectAnswer(this)" width=150 height=150></canvas>
+        <canvas class="answer" id="a4" onclick="selectAnswer(this)" width=150 height=150></canvas>
+        <canvas class="answer" id="a5" onclick="selectAnswer(this)" width=150 height=150></canvas>
+        <canvas class="answer" id="a6" onclick="selectAnswer(this)" width=150 height=150></canvas>
+        <!--canvas class="answer" id="a7" onclick="selectAnswer(this)" width=150 height=150></canvas-->
+        <!--canvas class="answer" id="a8" onclick="selectAnswer(this)" width=150 height=150></canvas-->
+    </div>
+    <div>
+        <input class="radio_buttons" type="radio" id="r_a1" name="answer_buttons"/>
+        <input class="radio_buttons" type="radio" id="r_a2" name="answer_buttons"/>
+        <input class="radio_buttons" type="radio" id="r_a3" name="answer_buttons"/>
+        <input class="radio_buttons" type="radio" id="r_a4" name="answer_buttons"/>
+        <input class="radio_buttons" type="radio" id="r_a5" name="answer_buttons"/>
+        <input class="radio_buttons" type="radio" id="r_a6" name="answer_buttons"/>
+        <!--input class="radio_buttons" type="radio" id="r_a7" name="answer_buttons"/-->
+        <!--input class="radio_buttons" type="radio" id="r_a8" name="answer_buttons"/-->
+    </div>
+    <script>
+        let buffer = 10; //To render full triangle and not have any of it cut off.
+
+        //3S = 3 sections/segments.
+        function drawTriangle3S(context, val){
+            context.style = "border:0px solid #000000;";
+            context.lineWidth = 4;
+
+            //First third
+            context.beginPath();
+            context.moveTo(0 + buffer, context.canvas.height - buffer);
+            context.lineTo((context.canvas.width/2), ((context.canvas.height*2)/3)-buffer);
+            context.lineTo((context.canvas.width/2), 0 + buffer);
+            context.closePath();
+            context.stroke();
+
+            if(val == 0){
+                context.fill();
+            }
+
+            //Second third.
+            context.beginPath();
+            context.moveTo((context.canvas.width/2), 0 + buffer);
+            context.lineTo((context.canvas.width/2), ((context.canvas.height*2)/3)-buffer);
+            context.lineTo(context.canvas.width - buffer, context.canvas.height - buffer);
+            context.closePath();
+            context.stroke();
+
+            if(val == 1){
+                context.fill();
+            }
+
+            //Final third.
+            context.beginPath();
+            context.moveTo(0 + buffer, context.canvas.height - buffer);
+            context.lineTo((context.canvas.width/2), ((context.canvas.height*2)/3)-buffer);
+            context.lineTo(context.canvas.width - buffer, context.canvas.height - buffer);
+            context.closePath();
+            context.stroke();
+
+            if(val == 2){
+                context.fill();
+            }
+        }
+
+        function drawTriangle4S(context, val){
+            context.lineWidth = 4;
+
+            //First quarter
+            context.beginPath();
+            context.moveTo(context.canvas.width/2, 0 + buffer);
+            context.lineTo(context.canvas.width/2, context.canvas.height/2);
+            context.lineTo(context.canvas.width/4 + buffer, context.canvas.height/2);
+            context.lineTo(context.canvas.width/2, 0 + buffer);
+            context.stroke();
+
+            if(val == 0){
+                context.fill();
+            }
+            //Second quarter
+            context.beginPath();
+            context.moveTo(context.canvas.width/2, 0 + buffer);
+            context.lineTo(context.canvas.width/2, context.canvas.height/2);
+            context.lineTo(3*context.canvas.width/4 - buffer, context.canvas.height/2);
+            context.lineTo(context.canvas.width/2, 0 + buffer);
+            context.stroke();
+
+            if(val == 1){
+                context.fill();
+            }
+            //Third quarter
+            context.beginPath();
+            context.moveTo(context.canvas.width/2, context.canvas.height/2);
+            context.lineTo(context.canvas.width/2, context.canvas.height - buffer);
+            context.lineTo(context.canvas.width - buffer, context.canvas.height - buffer);
+            context.lineTo(3*context.canvas.width/4 - buffer, context.canvas.height/2);
+            context.lineTo(context.canvas.width/2, context.canvas.height/2);
+            context.stroke();
+
+            if(val == 2){
+                context.fill();
+            }
+            //Fourth quarter
+            context.beginPath();
+            context.moveTo(context.canvas.width/2, context.canvas.height/2);
+            context.lineTo(context.canvas.width/2, context.canvas.height - buffer);
+            context.lineTo(0 + buffer, context.canvas.height - buffer);
+            context.lineTo(context.canvas.width/4 + buffer, context.canvas.height/2);
+            context.lineTo(context.canvas.width/2, context.canvas.height/2);
+            context.stroke();
+
+            if(val == 3){
+                context.fill();
+            }
+        }
+
+        function drawTriangle(context, val, segment){
+            switch(segment){
+                case 3:
+                    drawTriangle3S(context, val);
+                break;
+
+                case 4:
+                    drawTriangle4S(context, val);
+                break;
+
+                default:
+                    console.log("drawTriangle Error: invalid segment number.");
+                break;
+            }
+        }
+
+        function drawCircle3S(context, val){
+            context.lineWidth = 4;
+            let x = 15; //otherwise circle gets clipped.
+
+            context.beginPath();
+            context.moveTo((context.canvas.width/2), (context.canvas.height/2));
+            context.arc((context.canvas.width/2), (context.canvas.height/2), (context.canvas.width/2) - x, (5*Math.PI/6), (3*Math.PI)/2); //Start angle and end angle
+            context.closePath();
+            context.stroke();
+
+            if(val == 0){
+                context.fill();
+            }
+
+            context.beginPath();
+            context.moveTo((context.canvas.width/2), (context.canvas.height/2));
+            context.arc((context.canvas.width/2), (context.canvas.height/2), (context.canvas.width/2) - x, (3*Math.PI/2), (Math.PI)/6); //Start angle and end angle
+            context.closePath();
+            context.stroke();
+
+            if(val == 1){
+                context.fill();
+            }
+
+            context.beginPath();
+            context.moveTo((context.canvas.width/2), (context.canvas.height/2));
+            context.arc((context.canvas.width/2), (context.canvas.height/2), (context.canvas.width/2) - x, (Math.PI/6), (5*Math.PI)/6); //Start angle and end angle
+            context.closePath();
+            context.stroke();
+
+            if(val == 2){
+                context.fill();
+            }
+        }
+
+        function drawCircle4S(context, val){
+            context.lineWidth = 4;
+            let x = 15; //otherwise circle gets clipped.
+
+            context.beginPath();
+            context.moveTo((context.canvas.width/2), (context.canvas.height/2));
+            context.arc((context.canvas.width/2), (context.canvas.height/2), (context.canvas.width/2) - x, Math.PI, (3*Math.PI)/2); //Start angle and end angle
+            context.closePath();
+            context.stroke();
+
+            if(val == 0){
+                context.fill();
+            }
+
+            context.beginPath();
+            context.moveTo((context.canvas.width/2), (context.canvas.height/2));
+            context.arc((context.canvas.width/2), (context.canvas.height/2), (context.canvas.width/2) - x, (3*Math.PI/2), (2*Math.PI)); //Start angle and end angle
+            context.closePath();
+            context.stroke();
+
+            if(val == 1){
+                context.fill();
+            }
+
+            context.beginPath();
+            context.moveTo((context.canvas.width/2), (context.canvas.height/2));
+            context.arc((context.canvas.width/2), (context.canvas.height/2), (context.canvas.width/2) - x, (2*Math.PI), (Math.PI)/2); //Start angle and end angle
+            context.closePath();
+            context.stroke();
+
+            if(val == 2){
+                context.fill();
+            }
+
+            context.beginPath();
+            context.moveTo((context.canvas.width/2), (context.canvas.height/2));
+            context.arc((context.canvas.width/2), (context.canvas.height/2), (context.canvas.width/2) - x, (Math.PI/2), (Math.PI)); //Start angle and end angle
+            context.closePath();
+            context.stroke();
+
+            if(val == 3){
+                context.fill();
+            }
+        }
+
+        function drawCircle(context, val, segment){
+            switch(segment){
+                case 3:
+                    drawCircle3S(context, val);
+                break;
+
+                case 4:
+                    drawCircle4S(context, val);
+                break;
+
+                default:
+                    console.log("drawCircle Error: invalid segment number.");
+                break;
+            }
+        }
+
+        function drawSquare3S(context, val){
+            context.lineWidth = 4;
+            let padding = 15;
+            let new_height = context.canvas.height * 0.79; //Height at which the square is divided evenly into 3 pieces.
+
+            context.beginPath();
+            context.moveTo(0 + padding, 0 + padding);
+            context.lineTo(0 + padding, (new_height) - padding);
+            context.lineTo((context.canvas.width/2), (context.canvas.height/2));
+            context.lineTo((context.canvas.width/2), 0 + padding);
+            context.closePath();
+            context.stroke();
+
+            if(val == 0){
+                context.fill();
+            }
+
+            context.beginPath();
+            context.moveTo((context.canvas.width/2), 0 + padding);
+            context.lineTo((context.canvas.width/2), (context.canvas.height/2));
+            context.lineTo(context.canvas.width - padding, (new_height) - padding);
+            context.lineTo(context.canvas.width - padding, 0 + padding);
+            context.closePath();
+            context.stroke();
+
+            if(val == 1){
+                context.fill();
+            }
+
+            context.beginPath();
+            context.moveTo(0 + padding, context.canvas.height - padding);
+            context.lineTo(0 + padding, (new_height) - padding);
+            context.lineTo((context.canvas.width/2), (context.canvas.height/2));
+            context.lineTo(context.canvas.width - padding, (new_height) - padding);
+            context.lineTo(context.canvas.width - padding, context.canvas.height - padding);
+            context.closePath();
+            context.stroke();
+
+            if(val == 2){
+                context.fill();
+            }
+        }
+
+        function drawSquare4S(context, val){
+            let padding = 15;
+            context.lineWidth = 4;
+
+            //Extra strokeRect added for outline
+
+            switch(val){
+                case 0:
+                    context.fillRect(0 + padding, 0 + padding, (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+                    context.strokeRect(0 + padding, 0 + padding, (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+
+                    context.strokeRect((context.canvas.width/2), 0 + padding, (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+                    context.strokeRect(0 + padding, (context.canvas.height/2), (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+                    context.strokeRect((context.canvas.width/2), (context.canvas.height/2), (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+                    break;
+
+                case 1:
+                    context.strokeRect(0 + padding, 0 + padding, (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+
+                    context.fillRect((context.canvas.width/2), 0 + padding, (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+                    context.strokeRect((context.canvas.width/2), 0 + padding, (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+
+                    context.strokeRect(0 + padding, (context.canvas.height/2), (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+                    context.strokeRect((context.canvas.width/2), (context.canvas.height/2), (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+                    break;
+
+                case 2:
+                    context.strokeRect(0 + padding, 0 + padding, (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+                    context.strokeRect((context.canvas.width/2), 0 + padding, (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+                    context.strokeRect(0 + padding, (context.canvas.height/2), (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+
+                    context.fillRect((context.canvas.width/2), (context.canvas.height/2), (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+                    context.strokeRect((context.canvas.width/2), (context.canvas.height/2), (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+                    break;
+
+                case 3:
+                    context.strokeRect(0 + padding, 0 + padding, (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+                    context.strokeRect((context.canvas.width/2), 0 + padding, (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+
+                    context.fillRect(0 + padding, (context.canvas.height/2), (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+                    context.strokeRect(0 + padding, (context.canvas.height/2), (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+
+                    context.strokeRect((context.canvas.width/2), (context.canvas.height/2), (context.canvas.width/2 - padding), (context.canvas.height/2 - padding));
+                    break;
+            }
+        }
+
+        function drawSquare(context, val, segment){
+            switch(segment){
+                case 3:
+                    drawSquare3S(context, val);
+                break;
+
+                case 4:
+                    drawSquare4S(context, val);
+                break;
+
+                default:
+                    console.log("drawSquare Error: invalid segment number.");
+                break;
+            }
+        }
+
+        function drawShape(context, segments, segment_number, shape, offset){
+            let i;
+            //console.log(segments);
+            switch(shape){
+                case 't':
+                    for(i = 0; i < segments.length; i++){
+                        drawTriangle(context, (segments[i]+offset)%segment_number, segment_number);
+                    }
+                break;
+
+                case 'c':
+                    for(i = 0; i < segments.length; i++){
+                        drawCircle(context, (segments[i]+offset)%segment_number, segment_number);
+                    }
+                break;
+
+                case 's':
+                    for(i = 0; i < segments.length; i++){
+                        drawSquare(context, (segments[i]+offset)%segment_number, segment_number);
+                    }
+                break;
+
+                default:
+                    console.log("drawShape Error: invalid shape.");
+                break;
+            }
+        }
+
+        //Define all canvases.
+        let canvas = document.getElementById("c11");
+        let ctx11 = canvas.getContext("2d");
+        ctx11.fillStyle = "black";
+        ctx11.strokeStyle = "black";
+
+        canvas = document.getElementById("c12");
+        let ctx12 = canvas.getContext("2d");
+        ctx12.fillStyle = "black";
+        ctx12.strokeStyle = "black";
+
+        canvas = document.getElementById("c13");
+        let ctx13 = canvas.getContext("2d");
+        ctx13.fillStyle = "black";
+        ctx13.strokeStyle = "black";
+
+        canvas = document.getElementById("c21");
+        let ctx21 = canvas.getContext("2d");
+        ctx21.fillStyle = "black";
+        ctx21.strokeStyle = "black";
+
+        canvas = document.getElementById("c22");
+        let ctx22 = canvas.getContext("2d");
+        ctx22.fillStyle = "black";
+        ctx22.strokeStyle = "black";
+
+        canvas = document.getElementById("c23");
+        let ctx23 = canvas.getContext("2d");
+        ctx23.fillStyle = "black";
+        ctx23.strokeStyle = "black";
+
+        canvas = document.getElementById("c31");
+        let ctx31 = canvas.getContext("2d");
+        ctx31.fillStyle = "black";
+        ctx31.strokeStyle = "black";
+
+        canvas = document.getElementById("c32");
+        let ctx32 = canvas.getContext("2d");
+        ctx32.fillStyle = "black";
+        ctx32.strokeStyle = "black";
+
+        canvas = document.getElementById("c33");
+        let ctx33 = canvas.getContext("2d");
+        ctx33.fillStyle = "black";
+        ctx33.strokeStyle = "black";
+
+
+        //Answer squares:
+        let ans_canvas = document.getElementById("a1");
+        let ctx_a1 = ans_canvas.getContext("2d");
+        ctx_a1.fillStyle = "black";
+        ctx_a1.strokeStyle = "black";
+
+        ans_canvas = document.getElementById("a2");
+        let ctx_a2 = ans_canvas.getContext("2d");
+        ctx_a2.fillStyle = "black";
+        ctx_a2.strokeStyle = "black";
+
+        ans_canvas = document.getElementById("a3");
+        let ctx_a3 = ans_canvas.getContext("2d");
+        ctx_a3.fillStyle = "black";
+        ctx_a3.strokeStyle = "black";
+
+        ans_canvas = document.getElementById("a4");
+        let ctx_a4 = ans_canvas.getContext("2d");
+        ctx_a4.fillStyle = "black";
+        ctx_a4.strokeStyle = "black";
+
+        ans_canvas = document.getElementById("a5");
+        let ctx_a5 = ans_canvas.getContext("2d");
+        ctx_a5.fillStyle = "black";
+        ctx_a5.strokeStyle = "black";
+
+        ans_canvas = document.getElementById("a6");
+        let ctx_a6 = ans_canvas.getContext("2d");
+        ctx_a6.fillStyle = "black";
+        ctx_a6.strokeStyle = "black";
+
+        // ans_canvas = document.getElementById("a7");
+        // let ctx_a7 = ans_canvas.getContext("2d");
+        // ctx_a7.fillStyle = "black";
+        // ctx_a7.strokeStyle = "black";
+        //
+        // ans_canvas = document.getElementById("a8");
+        // let ctx_a8 = ans_canvas.getContext("2d");
+        // ctx_a8.fillStyle = "black";
+        // ctx_a8.strokeStyle = "black";
+
+        const ans_id = generateAnswerSquareID();
+
+        function generateMatrix(){
+            let shapes = ['t', 'c', 's'];
+            let row;
+            let shape = '';
+
+            let segments;
+            let segment_number = Math.floor((Math.random()*2)+3); //3 or 4
+            //console.log(segments);
+
+            let pattern_selector = Math.floor((Math.random()*4)+1);
+            let shape_selector = Math.floor((Math.random()*3)+48);
+
+            let shape_dir = Math.floor((Math.random()*2)+1); // t->c->s->t or t->s->c->t
+
+            let contexts = [];
+
+            let clockwise_selector;
+
+            console.log(pattern_selector);
+
+            contexts = [
+                [ctx11, ctx12, ctx13],
+                [ctx21, ctx22, ctx23],
+                [ctx31, ctx32]
+            ];
+
+            contexts[2].push(ans_id);
+            //console.log(contexts);
+
+            for(row = 1; row <= 3; row++){
+                if(pattern_selector == 1 || pattern_selector == 2){
+
+                    if(pattern_selector == 1){
+                        console.log("Addition");
+                        segments = Array.from(calculateAddSubSegments(segment_number ,true));
+                    }else{
+                        console.log("Subtraction");
+                        segments = Array.from(calculateAddSubSegments(segment_number ,false));
+                    }
+
+                    addSub(shapes[shape_selector%3], segment_number, segments, row, contexts);
+
+                    if(row == 3)
+                        //Sort answer_segments so that the isDifferent function can detect if they are the same.
+                        generateFakeAnswers(shapes[shape_selector%3], segment_number, segments[row-1].sort(function(a,b) {return a-b;}), 0);
+
+                }else if(pattern_selector == 3 || pattern_selector == 4){
+
+                    segments = Array.from(calculateSegments(segment_number, 1));
+
+                    if(pattern_selector == 3){
+                        console.log("Clockwise rotation");
+                        rotation(shapes[shape_selector%3], segment_number, segments, row, true, contexts);
+                    }else{
+                        console.log("Anti-Clockwise rotation");
+                        rotation(shapes[shape_selector%3], segment_number, segments, row, false, contexts);
+                    }
+
+                    if(row == 3)
+                        //Sort answer_segments so that the isDifferent function can detect if they are the same.
+                        generateFakeAnswers(shapes[shape_selector%3], segment_number, segments.sort(function(a,b) {return a-b;}), 2);
+                }
+
+                if(shape_dir == 1){
+                    shape_selector++;
+                }else{
+                    shape_selector--;
+                }
+            }
+        }
+
+        function calculateSegments(segment_number, min_segments){
+            //Remember to use Array.from when using function.
+
+            let coin_flip;
+            let segments = new Set(); //Set has only unique items, prevents
+                                      //duplicate values.
+
+            while(segments.size < min_segments){
+                for(let i = 1; i <= segment_number; i++){
+                    coin_flip = Math.floor(Math.random()*2);
+                    if(coin_flip){
+                        //Add buffer divisible by both 3 and 4
+                        //So that for anti-clockwise rotation,
+                        //value can't be negative and cause an error.
+                        segments.add(i + 12);
+                    }
+                }
+
+                if(segments.size == segment_number){
+                    segments = new Set();
+                }
+            }
+            return segments;
+        }
+
+        function calculateAddSubSegments(segment_number, addition){
+            //Function to calculate the segments for additive and
+            //subtractive patterns, given they are the same just
+            //reverses of each other.
+            let i;
+            let j;
+            let coin_flip;
+            let a = [];
+            let b = [];
+            let all_segments = [];
+
+            s = Array.from(calculateSegments(segment_number, segment_number - 1));
+            while(a.length < 1 || b.length < 1){
+                a = [];
+                b = [];
+                for(j = 0; j < s.length; j++){
+                    coin_flip = Math.floor(Math.random()*2);
+                    if(coin_flip){
+                        a.push(s[j]);
+                    }else{
+                        b.push(s[j]);
+                    }
+                }
+            }
+
+            if(addition){
+                all_segments.push(a, b, s);
+                return all_segments;
+            }else{
+                all_segments.push(s, b, a);
+                return all_segments;
+            }
+
+            console.log("calculateAddSubSegments Error.");
+        }
+
+        function addSub(shape, segment_number, segments, row, contexts){
+            let i;
+            let j;
+
+            for(i = 0; i < contexts[row-1].length; i++){
+                drawShape(contexts[row-1][i], segments[i], segment_number, shape, 0);
+            }
+        }
+
+        function rotation(shape, segment_number, segments, row, clockwise, contexts){
+            let i = 0;
+            let j = 0;
+
+            if(clockwise){
+                for(i = 0; i < contexts[row-1].length; i++){
+                    drawShape(contexts[row-1][i], segments, segment_number, shape, i);
+                }
+            }else{
+                for(i = 0; i < contexts[row-1].length; i++){
+                    drawShape(contexts[row-1][i], segments, segment_number, shape, -i);
+                }
+            }
+        }
+
+        function generateAnswerSquareID(){
+            let answer_square = Math.floor((Math.random()*6)+1);
+            let id;
+
+            switch(answer_square){
+                case 1:
+                    id = ctx_a1;
+                    break;
+
+                case 2:
+                    id = ctx_a2;
+                    break;
+
+                case 3:
+                    id = ctx_a3;
+                    break;
+
+                case 4:
+                    id = ctx_a4;
+                    break;
+
+                case 5:
+                    id = ctx_a5;
+                    break;
+
+                case 6:
+                    id = ctx_a6;
+                    break;
+
+                // case 7:
+                //     id = ctx_a7;
+                //     break;
+                //
+                // case 8:
+                //     id = ctx_a8;
+                //     break;
+            }
+
+            return id;
+        }
+
+        function generateFakeAnswers(shape, segment_number, ans_segments, offset){
+            let s; //segments
+            let answer_contexts = [ctx_a1, ctx_a2, ctx_a3, ctx_a4, ctx_a5, ctx_a6];
+            let index = answer_contexts.indexOf(ans_id);
+            answer_contexts.splice(index, 1); //Delete correct answer.
+
+            let prev_segments = [];
+
+            prev_segments.push(ans_segments);
+            for(let i = 0; i < answer_contexts.length; i++){
+                do{
+                    s = Array.from(calculateSegments(segment_number, 1));
+                }while(!isDifferent(s, prev_segments));
+
+                prev_segments.push(s);
+                console.log(prev_segments);
+                //drawShape(context, segments, segment_number, shape, offset);
+                drawShape(answer_contexts[i], s, segment_number, shape, offset);
+            }
+        }
+
+        function isDifferent(new_segments, prev_segments){
+            let valid = true;
+            //console.log(prev_segments);
+            let counter = 0;
+
+            for(let arr of prev_segments){
+                //console.log(arr);
+                if(new_segments.length == arr.length){
+                     for(let i = 0; i < new_segments.length; i++){
+                        if(new_segments[i] == arr[i]){
+                            counter++;
+                            if(counter == new_segments.length){
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        function selectAnswer(element){
+            //Select an answer, selecting the corresponding radio button.
+            let r_id = document.getElementById("r_" + element.id); //Get radio button id
+            r_id.checked = true;
+        }
+
+        function nextMatrix(){
+
+        }
+    </script>
+
+    <button type="button" onclick="drawSquare3S(ctx11, 2)">Square 3S!</button>
+    <button type="button" onclick="drawSquare4S(ctx12, 0)">Square 4S!</button>
+    <button type="button" onclick="drawTriangle3S(ctx13, 3)">Triangle 3S!</button>
+    <button type="button" onclick="drawTriangle4S(ctx21, 1)">Triangle 4S!</button>
+    <button type="button" onclick="drawCircle3S(ctx22, 3)">Circle 3S!</button>
+    <button type="button" onclick="drawCircle4S(ctx32, 4)">Circle 4S!</button>
+    <button type="button" onclick="rotation('t',3,1,50,false)">Fill Row</button>
+    <button type="button" onclick="test(3,1)">TEST BUTTON</button>
+    <button type="button" onclick="generateMatrix()">PATTERN!</button>
+    <button type="button" onclick="">Next</button>
+</body>
+</html>
+
